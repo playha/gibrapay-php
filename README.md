@@ -58,6 +58,17 @@ $transactions = new Transactions($apiKey, $walletId);
 $historicoTransacoes = $transactions->get();
 ```
 
+### Gerenciar Carteira
+
+```php
+use GibraPay\Wallet;
+
+$wallet = new Wallet($apiKey);
+
+$walletDetails = $wallet->getById('95badd5a-e7e5-4e06-abdc-727ae7149429');
+
+```
+
 ## Tratamento de Erros
 
 A biblioteca lança exceções quando as requisições à API falham. É recomendado envolver as chamadas da API em blocos try-catch:
