@@ -22,6 +22,12 @@ class GibraPay {
     /** @var string */
     protected $baseUrl = 'https://gibrapay.online';
 
+    /** @var array */
+    protected $defaultHeaders = [
+        'Accept' => 'application/json',
+        'Content-Type' => 'application/json'
+    ];
+
     /**
      * GibraPay constructor.
      * @param string $apiKey
@@ -35,12 +41,16 @@ class GibraPay {
 
         $this->apiKey = $apiKey;
         $this->walletId = $walletId;
+        
+        $headers = array_merge($this->defaultHeaders, [
+            'api-key' => $this->apiKey
+        ]);
+
         $this->client = new Client([
             'base_uri' => $this->baseUrl,
-            'headers' => [
-                'api-key' => $this->apiKey,
-                'Accept' => 'application/json',
-            ]
+            'headers' => $headers,
+            'timeout' => 30,
+            'connect_timeout' => 10
         ]);
     }
 
@@ -63,11 +73,28 @@ class GibraPay {
             }
 
             $response = $this->client->request($method, $endpoint, $options);
-            return json_decode($response->getBody(), true);
+            $body = $response->getBody()->getContents();
+            
+            $result = json_decode($body, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Invalid JSON response from API');
+            }
+            
+            return $result;
         } catch (RequestException $e) {
             $response = $e->getResponse();
-            $error = json_decode($response->getBody(), true);
-            throw new \Exception($error['message'] ?? 'API request failed', $response->getStatusCode());
+            if ($response) {
+                $body = $response->getBody()->getContents();
+                $error = json_decode($body, true);
+                $message = $error['message'] ?? 'API request failed';
+                $code = $response->getStatusCode();
+            } else {
+                $message = $e->getMessage();
+                $code = 0;
+            }
+            throw new \Exception($message, $code);
+        } catch (GuzzleException $e) {
+            throw new \Exception('Network error: ' . $e->getMessage());
         }
     }
 }
