@@ -17,7 +17,7 @@
       "phpunit/phpunit": "^9.0",
       "friendsofphp/php-cs-fixer": "^3.75"
     },
-    "minimum-stability": "stable", 
+    "minimum-stability": "dev", 
     "prefer-stable": true
   }
   
